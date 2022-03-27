@@ -5,11 +5,76 @@ namespace ASCIIban
 {
     internal enum Tile
     {
-        Wall, Floor, PlayerSpawn, Box, BoxDropoff, BoxDroppedoff
+        Wall = '#', Floor = '.', PlayerSpawn, Box = 'O', BoxDropoff = '&', BoxDroppedoff = '*'
     }
 
     internal class Level
     {
+        public void HandleBoxPush(object sender, BoxPushEventArgs e)
+        {
+            Player player = (Player)sender;
+
+            int BoxX = player.Y;
+            int BoxY = player.X;
+
+            switch (e.dir)
+            {
+                case Direction.North:
+                    BoxX--;
+                    break;
+
+                case Direction.East:
+                    BoxY++;
+                    break;
+
+                case Direction.South:
+                    BoxX++;
+                    break;
+
+                case Direction.West:
+                    BoxY--;
+                    break;
+
+                default:
+                    break;
+                    
+            }
+
+            int PossibleDropoffX = BoxX;
+            int PossibleDropoffY = BoxY;
+
+            switch (e.dir)
+            {
+                case Direction.North:
+                    PossibleDropoffX--;
+                    break;
+
+                case Direction.East:
+                    PossibleDropoffY++;
+                    break;
+
+                case Direction.South:
+                    PossibleDropoffX++;
+                    break;
+
+                case Direction.West:
+                    PossibleDropoffY--;
+                    break;
+
+                default:
+                    break;
+
+            }
+
+            if ((level[PossibleDropoffX, PossibleDropoffY] == Tile.Floor))
+            {
+                level[BoxX, BoxY] = Tile.Floor;
+                level[PossibleDropoffX, PossibleDropoffY] = Tile.Box;
+            }
+
+            return;
+        }
+
         public Level(string filePath)
         {
             string[] txtlevel = File.ReadAllLines(filePath);
@@ -33,7 +98,7 @@ namespace ASCIIban
                             startY = y; startX = x;
                             level[x, y] = Tile.Floor;
                             break;
-
+                            
                         case 'O':
                             level[x, y] = Tile.Box;
                             break;
@@ -48,32 +113,11 @@ namespace ASCIIban
 
         public void Draw()
         {
-            for (int x = 0; x < level.GetLength(0); x++)
+            for (int y = 0; y < level.GetLength(0); y++)
             {
-                for (int y = 0; y < level.GetLength(1); y++)
+                for (int x = 0; x < level.GetLength(1); x++)
                 {
-                    char tdraw;
-                    switch (level[x, y])
-                    {
-                        case Tile.Wall:
-                            tdraw = '#'; break;
-
-                        case Tile.Floor:
-                            tdraw = '.'; break;
-
-                        case Tile.Box:
-                            tdraw = 'O'; break;
-
-                        case Tile.BoxDropoff:
-                            tdraw = ';'; break;
-
-                        case Tile.BoxDroppedoff:
-                            tdraw = '%'; break;
-
-                        default:
-                            tdraw = ' '; break;
-                    }
-                    Console.Write(level[x, y]); // this only outputs "Wall" and "Floor" tiles, confirming that something is broken
+                    Console.Write((char)level[y, x]);
                 }
                 Console.WriteLine();
             }
@@ -85,6 +129,5 @@ namespace ASCIIban
 
         public readonly int startX;
         public readonly int startY;
-
     }
 }
