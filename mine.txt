@@ -1,0 +1,5 @@
+./levels/mine/1.txt
+./levels/mine/2.txt
+./levels/mine/3.txt
+./levels/mine/4.txt
+./levels/mine/5.txt

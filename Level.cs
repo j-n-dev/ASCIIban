@@ -5,7 +5,7 @@ namespace ASCIIban
 {
     internal enum Tile
     {
-        Wall = '#', Floor = '.', PlayerSpawn, Box = 'O', BoxDropoff = '&', BoxDroppedoff = '*'
+        Wall = '#', Floor = '.', PlayerSpawn, Box = 'O', BoxDropoff = '&', BoxDroppedoff = '%'
     }
 
     internal class Level
@@ -14,25 +14,25 @@ namespace ASCIIban
         {
             Player player = (Player)sender;
 
-            int BoxX = player.Y;
-            int BoxY = player.X;
+            int BoxX = player.X;
+            int BoxY = player.Y;
 
-            switch (e.dir)
+            switch (e.Dir)
             {
                 case Direction.North:
-                    BoxX--;
+                    BoxY--;
                     break;
 
                 case Direction.East:
-                    BoxY++;
-                    break;
-
-                case Direction.South:
                     BoxX++;
                     break;
 
+                case Direction.South:
+                    BoxY++;
+                    break;
+
                 case Direction.West:
-                    BoxY--;
+                    BoxX--;
                     break;
 
                 default:
@@ -43,24 +43,24 @@ namespace ASCIIban
             int PossibleDropoffX = BoxX;
             int PossibleDropoffY = BoxY;
 
-            switch (e.dir)
+            switch (e.Dir)
             {
                 case Direction.North:
-                    PossibleDropoffX--;
-                    break;
-
-                case Direction.East:
-                    PossibleDropoffY++;
-                    break;
-
-                case Direction.South:
-                    PossibleDropoffX++;
-                    break;
-
-                case Direction.West:
                     PossibleDropoffY--;
                     break;
 
+                case Direction.East:
+                    PossibleDropoffX++;
+                    break;
+
+                case Direction.South:
+                    PossibleDropoffY++;
+                    break;
+
+                case Direction.West:
+                    PossibleDropoffX--;
+                    break;
+                    
                 default:
                     break;
 
@@ -68,8 +68,16 @@ namespace ASCIIban
 
             if ((level[PossibleDropoffX, PossibleDropoffY] == Tile.Floor))
             {
-                level[BoxX, BoxY] = Tile.Floor;
+                if (level[BoxX, BoxY] == Tile.BoxDroppedoff) currentBoxes--;
+                level[BoxX, BoxY] = level[BoxX, BoxY] == Tile.BoxDroppedoff ? Tile.BoxDropoff : Tile.Floor;
                 level[PossibleDropoffX, PossibleDropoffY] = Tile.Box;
+            }
+            else if ((level[PossibleDropoffX, PossibleDropoffY] == Tile.BoxDropoff))
+            {
+                if (level[BoxX, BoxY] == Tile.BoxDroppedoff) currentBoxes--;
+                level[BoxX, BoxY] = level[BoxX, BoxY] == Tile.BoxDroppedoff ? Tile.BoxDropoff : Tile.Floor;
+                level[PossibleDropoffX, PossibleDropoffY] = Tile.BoxDroppedoff;
+                currentBoxes++;
             }
 
             return;
@@ -80,31 +88,36 @@ namespace ASCIIban
             string[] txtlevel = File.ReadAllLines(filePath);
             level = new Tile[txtlevel[0].Length, txtlevel.Length];
 
-            for (int y = 0; y < txtlevel.Length; y++)
+            for (int x = 0; x < txtlevel.Length; x++)
             {
-                for (int x = 0; x < txtlevel[y].Length; x++)
+                for (int y = 0; y < txtlevel[x].Length; y++)
                 {
-                    switch (txtlevel[y][x])
+                    switch (txtlevel[x][y])
                     {
                         case '#':
-                            level[x, y] = Tile.Wall;
+                            level[y, x] = Tile.Wall;
                             break;
 
                         case ' ':
-                            level[x, y] = Tile.Floor;
+                            level[y, x] = Tile.Floor;
                             break;
 
                         case '@':
                             startY = y; startX = x;
-                            level[x, y] = Tile.Floor;
+                            level[y, x] = Tile.Floor;
                             break;
                             
                         case 'O':
-                            level[x, y] = Tile.Box;
+                            level[y, x] = Tile.Box;
+                            requiredBoxes++;
                             break;
 
                         case 'D':
-                            level[x, y] = Tile.BoxDropoff;
+                            level[y, x] = Tile.BoxDropoff;
+                            break;
+
+                        case 'R':
+                            level[y, x] = Tile.BoxDroppedoff;
                             break;
                     }
                 }
@@ -113,11 +126,38 @@ namespace ASCIIban
 
         public void Draw()
         {
-            for (int y = 0; y < level.GetLength(0); y++)
+            for (int y = 0; y < level.GetLength(1); y++)
             {
-                for (int x = 0; x < level.GetLength(1); x++)
+                for (int x = 0; x < level.GetLength(0); x++)
                 {
-                    Console.Write((char)level[y, x]);
+                    ConsoleColor oldCol = Console.ForegroundColor;
+                    switch (level[x, y])
+                    {
+                        case Tile.Floor:
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            break;
+
+                        case Tile.Wall:
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            break;
+
+                        case Tile.Box:
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            break;
+
+                        case Tile.BoxDropoff:
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            break;
+
+                        case Tile.BoxDroppedoff:
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            break;
+
+                        default:
+                            break;
+                    }
+                    Console.Write((char)level[x, y]);
+                    Console.ForegroundColor = oldCol;
                 }
                 Console.WriteLine();
             }
@@ -129,5 +169,8 @@ namespace ASCIIban
 
         public readonly int startX;
         public readonly int startY;
+
+        public readonly int requiredBoxes;
+        public int          currentBoxes;
     }
 }

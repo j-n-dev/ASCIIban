@@ -11,26 +11,26 @@ namespace ASCIIban
 
     internal class BoxPushEventArgs
     {
-        public BoxPushEventArgs(Direction dir) { this.dir = dir; }
-        public Direction dir { get; }
+        public BoxPushEventArgs(Direction dir) { this.Dir = dir; }
+        public Direction Dir { get; }
     }
 
     internal class Player
     {
         public delegate void BoxPushEventHandler(object sender, BoxPushEventArgs e); // some event stuff
 
-        private Level level; // in case collision breaks after adding in box moving, try adding a pointer here and see if it fixes anything
+        private readonly Level level; // in case collision breaks after adding in box moving, try adding a pointer here and see if it fixes anything
 
         public event BoxPushEventHandler BoxPushed;
 
-        public int X;
         public int Y;
+        public int X;
 
         public Player(Level level)
         {
             this.level = level;
-            X = this.level.startX;
-            Y = this.level.startY;
+            Y = this.level.startX;
+            X = this.level.startY;
         }
 
         public void Move(Direction dir)
@@ -38,23 +38,23 @@ namespace ASCIIban
             switch (dir)
             {
                 case Direction.North:
-                    if (level.level[Y - 1, X] == Tile.Box) BoxPushed?.Invoke(this, new (dir));
-                    if (level.level[Y - 1, X] == Tile.BoxDropoff || level.level[Y - 1, X] == Tile.Floor) Y--;
+                    if (level.level[X, Y - 1] == Tile.Box || level.level[X, Y - 1] == Tile.BoxDroppedoff) BoxPushed?.Invoke(this, new (dir));
+                    if (level.level[X, Y - 1] == Tile.BoxDropoff || level.level[X, Y - 1] == Tile.Floor) Y--;
                     break;
 
                 case Direction.East:
-                    if (level.level[Y, X + 1] == Tile.Box) BoxPushed?.Invoke(this, new(dir));
-                    if (level.level[Y, X + 1] == Tile.BoxDropoff || level.level[Y, X + 1] == Tile.Floor) X++;
+                    if (level.level[X + 1, Y] == Tile.Box || level.level[X + 1, Y] == Tile.BoxDroppedoff) BoxPushed?.Invoke(this, new(dir));
+                    if (level.level[X + 1, Y] == Tile.BoxDropoff || level.level[X + 1, Y] == Tile.Floor) X++;
                     break;
 
                 case Direction.South:
-                    if (level.level[Y + 1, X] == Tile.Box) BoxPushed?.Invoke(this, new (dir));
-                    if (level.level[Y + 1, X] == Tile.BoxDropoff || level.level[Y + 1, X] == Tile.Floor) Y++;
+                    if (level.level[X, Y + 1] == Tile.Box || level.level[X, Y + 1] == Tile.BoxDroppedoff) BoxPushed?.Invoke(this, new (dir));
+                    if (level.level[X, Y + 1] == Tile.BoxDropoff || level.level[X, Y + 1] == Tile.Floor) Y++;
                     break;
 
                 case Direction.West:
-                    if (level.level[Y, X - 1] == Tile.Box) BoxPushed?.Invoke(this, new (dir));
-                    if (level.level[Y, X - 1] == Tile.BoxDropoff || level.level[Y, X - 1] == Tile.Floor) X--;
+                    if (level.level[X - 1, Y] == Tile.Box || level.level[X - 1, Y] == Tile.BoxDroppedoff) BoxPushed?.Invoke(this, new (dir));
+                    if (level.level[X - 1, Y] == Tile.BoxDropoff || level.level[X - 1, Y] == Tile.Floor) X--;
                     break;
 
                 default:
